@@ -21,7 +21,7 @@ public class LoginController {
         String username = credentials.get("username");
         String password = credentials.get("password");
 
-        if ("admin".equals(username) && "password".equals(password)) { // Replace with real authentication logic
+        if ("admin".equals(username) && "password".equals(password)) { // Replace with real authentication logics
             String token = jwtUtil.generateToken(username);
             return ResponseEntity.ok(Map.of("token", token));
         } else {
