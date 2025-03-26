@@ -1,38 +1,30 @@
 version: '3.8'
-services:
-  eureka:
-    image: steeltoeoss/eureka-server
-    container_name: eureka
-    ports:
-      - "8761:8761"
-    networks:
-      - my-network
 
-  postgres-db:  # Renamed service to 'postgres-db'
+services:
+  postgres-db:
     image: postgres
-    container_name: postgres-db
+    restart: always
     environment:
+      POSTGRES_DB: user_service
       POSTGRES_USER: micro_user
       POSTGRES_PASSWORD: Thanishka@5
-      POSTGRES_DB: user_service
-    ports:
-      - "5432:5432"
     networks:
       - my-network
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U micro_user -d user_service"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
   user-service:
     image: user-service
-    container_name: user-service
+    restart: always
     depends_on:
-      - postgres-db  # ✅ Use the correct name
-      - eureka
+      postgres-db:
+        condition: service_healthy  # Wait for PostgreSQL to be ready
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/user_service  # ✅ Fixed reference
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/user_service
       SPRING_DATASOURCE_USERNAME: micro_user
       SPRING_DATASOURCE_PASSWORD: Thanishka@5
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
-    ports:
-      - "8081:8081"
     networks:
       - my-network
 
