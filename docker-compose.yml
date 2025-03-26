@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  eureka:
+    image: steeltoeoss/eureka-server
+    container_name: eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - my-network
+
+  postgres-db:  # Renamed service to 'postgres-db'
+    image: postgres
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: micro_user
+      POSTGRES_PASSWORD: Thanishka@5
+      POSTGRES_DB: user_service
+    ports:
+      - "5432:5432"
+    networks:
+      - my-network
+
+  user-service:
+    image: user-service
+    container_name: user-service
+    depends_on:
+      - postgres-db  # ✅ Use the correct name
+      - eureka
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/user_service  # ✅ Fixed reference
+      SPRING_DATASOURCE_USERNAME: micro_user
+      SPRING_DATASOURCE_PASSWORD: Thanishka@5
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
+    ports:
+      - "8081:8081"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
